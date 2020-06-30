@@ -50,7 +50,7 @@ else
 struct Matriz
 {
 	int N;
-  int **tab;
+  int** tab;
 };
 
 struct Formiga
@@ -64,8 +64,8 @@ Matriz Cria_Matriz(int n) // Cria matriz n x n
 {
   Matriz m;
   m.N = n;
-  int **m.tab = (int **)malloc(n * sizeof(int*));
-  for(int i = 0; i < N; i++)
+  m.tab = (int **)malloc(n * sizeof(int*));
+  for(int i = 0; i < n; i++)
     m.tab[i] = (int *)malloc(n * sizeof(int));
   return m;
 }
@@ -74,29 +74,41 @@ Formiga Cria_Formiga(int x, int y) // Cria um agente com posição <x,y>
 {
   Formiga f;
   f.Carga = false;
-  f.Posicao = make_pair(x,y);
+  f.Posicao = std::make_pair(x,y);
   return f;
 }
 
 int Random (int a, int b) // retorna numero entre a e b
 {
-    srand(time(NULL));
-    return rand() % b + a;
+  srand(time(NULL));
+  return rand() % b + a;
 }
 
-int main()
+int main(int argc, char **argv)
 {
   Matriz M = Cria_Matriz(10);
   Formiga f0, f1, f2, f3, f4, f5, f6, f7, f8, f9;
-  f0 = Cria_Formiga(Random(0,10));
-  f1 = Cria_Formiga(Random(0,10));
-  f2 = Cria_Formiga(Random(0,10));
-  f3 = Cria_Formiga(Random(0,10));
-  f4 = Cria_Formiga(Random(0,10));
-  f5 = Cria_Formiga(Random(0,10));
-  f6 = Cria_Formiga(Random(0,10));
-  f7 = Cria_Formiga(Random(0,10));
-  f8 = Cria_Formiga(Random(0,10));
-  f9 = Cria_Formiga(Random(0,10));
+  f0 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
+  f1 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f1: <%d,%d>\n", f1.Posicao.first, f1.Posicao.second);
+  f2 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f2: <%d,%d>\n", f2.Posicao.first, f2.Posicao.second);
+  f3 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f3: <%d,%d>\n", f3.Posicao.first, f3.Posicao.second);
+  f4 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f4: <%d,%d>\n", f4.Posicao.first, f4.Posicao.second);
+  f5 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f5: <%d,%d>\n", f5.Posicao.first, f5.Posicao.second);
+  f6 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f6: <%d,%d>\n", f6.Posicao.first, f6.Posicao.second);
+  f7 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f7: <%d,%d>\n", f7.Posicao.first, f7.Posicao.second);
+  f8 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f8: <%d,%d>\n", f8.Posicao.first, f8.Posicao.second);
+  f9 = Cria_Formiga(Random(0,10),Random(0,10));
+  printf("f9: <%d,%d>\n", f9.Posicao.first, f9.Posicao.second);
+  int a;
+  scanf("%d", &a);
   return 0;
 }
