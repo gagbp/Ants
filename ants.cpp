@@ -50,32 +50,32 @@ else
 struct Matriz
 {
 	int N;
-    int **tab;
+  int **tab;
 };
 
 struct Formiga
 {
 	bool Carga; // F- não possui carga / V- possui carga
-    std::pair <int,int> Posicao; // <x,y> - posição atual na matriz
-    std::pair <int,int> PosicaoAnt; // <x,y> - posição anterior na matriz
+  std::pair <int,int> Posicao; // <x,y> - posição atual na matriz
+  std::pair <int,int> PosicaoAnt; // <x,y> - posição anterior na matriz
 };
 
 Matriz Cria_Matriz(int n) // Cria matriz n x n
 {
-    Matriz m;
-    m.N = n;
-    int **m.tab = (int **)malloc(n * sizeof(int*));
-    for(int i = 0; i < N; i++)
-        m.tab[i] = (int *)malloc(n * sizeof(int));
-    return m;
+  Matriz m;
+  m.N = n;
+  int **m.tab = (int **)malloc(n * sizeof(int*));
+  for(int i = 0; i < N; i++)
+    m.tab[i] = (int *)malloc(n * sizeof(int));
+  return m;
 }
 
 Formiga Cria_Formiga(int x, int y) // Cria um agente com posição <x,y>
 {
-    Formiga f;
-    f.Carga = false;
-    f.Posicao = make_pair(x,y);
-    return f;
+  Formiga f;
+  f.Carga = false;
+  f.Posicao = make_pair(x,y);
+  return f;
 }
 
 int Random (int a, int b) // retorna numero entre a e b
@@ -86,5 +86,17 @@ int Random (int a, int b) // retorna numero entre a e b
 
 int main()
 {
-    
+  Matriz M = Cria_Matriz(10);
+  Formiga f0, f1, f2, f3, f4, f5, f6, f7, f8, f9;
+  f0 = Cria_Formiga(Random(0,10));
+  f1 = Cria_Formiga(Random(0,10));
+  f2 = Cria_Formiga(Random(0,10));
+  f3 = Cria_Formiga(Random(0,10));
+  f4 = Cria_Formiga(Random(0,10));
+  f5 = Cria_Formiga(Random(0,10));
+  f6 = Cria_Formiga(Random(0,10));
+  f7 = Cria_Formiga(Random(0,10));
+  f8 = Cria_Formiga(Random(0,10));
+  f9 = Cria_Formiga(Random(0,10));
+  return 0;
 }
