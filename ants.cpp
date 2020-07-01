@@ -2,8 +2,8 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include <utility>      /* pair */
-#include <string>
 #include <iostream>
+#include <fstream>
 
 /*
 Variáveis do sistema
@@ -71,7 +71,7 @@ Matriz Cria_Matriz(int n) // Cria matriz n x n
   return m;
 }
 
-void printMatriz(int **visited, int N)
+void Print_Matriz(int **visited, int N)
 {
     for (int i = 0; i < N; i++)
     {
@@ -87,46 +87,128 @@ Formiga Cria_Formiga(int x, int y) // Cria um agente com posição <x,y>
   Formiga f;
   f.Carga = false;
   f.Posicao = std::make_pair(x,y);
+  f.PosicaoAnt = std::make_pair(x,y);
   return f;
+}
+
+Formiga Move_Formiga(Formiga F, int N) // Move o agente F
+{
+  /*
+    0 1 2
+    3 X 4
+    5 6 7
+  */
+  srand(time(NULL));
+  Formiga Aux;
+  bool a = true;
+  while (a)
+  {
+    Aux = Cria_Formiga(F.Posicao.first, F.Posicao.second);
+    int d = rand()%8;
+    switch (d)
+    {
+      case 0:
+        Aux.Posicao.first--;
+        Aux.Posicao.second--;
+        break;
+      case 1:
+        Aux.Posicao.second--;
+        break;
+      case 2:
+        Aux.Posicao.first++;
+        Aux.Posicao.second--;
+        break;
+      case 3:
+        Aux.Posicao.second--;
+        break;
+      case 4:
+        Aux.Posicao.second++;
+        break;
+      case 5:
+        Aux.Posicao.first++;
+        Aux.Posicao.second--;
+        break;
+      case 6:
+        Aux.Posicao.first++;
+        break;
+      case 7:
+        Aux.Posicao.first++;
+        Aux.Posicao.second++;
+        break;
+      default:
+        break;
+    }
+    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >= N || Aux.Posicao == Aux.PosicaoAnt))
+      a = false;
+  }
+  return Aux;
+}
+
+bool Pegar(Matriz visao)
+{
+  int cont = 0;
+  for (int i = 0; i < visao.N; i++)
+  {
+    for (int j = 0; j < visao.N; j++)
+    {
+      if (visao.tab[i][j]==1)
+      {
+        cont++;
+      }
+    }
+  }
+  if (cont< (visao.N*visao.N)/2)
+  {
+    return true;
+  }
+  return false;
+}
+
+bool Soltar(Matriz visao)
+{
+  int cont = 0;
+  for (int i = 0; i < visao.N; i++)
+  {
+    for (int j = 0; j < visao.N; j++)
+    {
+      if (visao.tab[i][j]==1)
+      {
+        cont++;
+      }
+    }
+  }
+  if (cont>= (visao.N*visao.N)/2)
+  {
+    return true;
+  }
+  return false;
 }
 
 int main(int argc, char **argv)
 {
+  int N = 20;
   srand(time(NULL));
-  Matriz M = Cria_Matriz(10);
-  for (int i = 0; i < M.N; i++)
+  Matriz M = Cria_Matriz(N);// Cria o ambiente
+  for (int i = 0; i < M.N; i++)// Preenche a matriz com 0 e 1 randomicamente
   {
     for (int j = 0; j < M.N; j++)
     {
       M.tab[i][j] = rand() % 2;
     }
   }
-  
-  printMatriz(M.tab, M.N);
+  Print_Matriz(M.tab, M.N);
 
-  Formiga f0, f1, f2, f3, f4, f5, f6, f7, f8, f9;
-  f0 = Cria_Formiga((rand()%10),(rand()%10));
-  f1 = Cria_Formiga((rand()%10),(rand()%10));
-  f2 = Cria_Formiga((rand()%10),(rand()%10));
-  f3 = Cria_Formiga((rand()%10),(rand()%10));
-  f4 = Cria_Formiga((rand()%10),(rand()%10));
-  f5 = Cria_Formiga((rand()%10),(rand()%10));
-  f6 = Cria_Formiga((rand()%10),(rand()%10));
-  f7 = Cria_Formiga((rand()%10),(rand()%10));
-  f8 = Cria_Formiga((rand()%10),(rand()%10));
-  f9 = Cria_Formiga((rand()%10),(rand()%10));
+  // Cria os agentes em posição de agentes
+  Formiga f0;
+  f0 = Cria_Formiga((rand()%N),(rand()%N));
+/*
   printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
-  printf("f1: <%d,%d>\n", f1.Posicao.first, f1.Posicao.second);
-  printf("f2: <%d,%d>\n", f2.Posicao.first, f2.Posicao.second);
-  printf("f3: <%d,%d>\n", f3.Posicao.first, f3.Posicao.second);
-  printf("f4: <%d,%d>\n", f4.Posicao.first, f4.Posicao.second);
-  printf("f5: <%d,%d>\n", f5.Posicao.first, f5.Posicao.second);
-  printf("f6: <%d,%d>\n", f6.Posicao.first, f6.Posicao.second);
-  printf("f7: <%d,%d>\n", f7.Posicao.first, f7.Posicao.second);
-  printf("f8: <%d,%d>\n", f8.Posicao.first, f8.Posicao.second);
-  printf("f9: <%d,%d>\n", f9.Posicao.first, f9.Posicao.second);
-  
-  
+*/
+
+  f0 = Move_Formiga(f0,N);
+/*
+  printf("\nf0: <%d,%d>\nf0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second, f0.PosicaoAnt.first, f0.PosicaoAnt.second);
+*/
 
   int a;
   scanf("%d", &a);
