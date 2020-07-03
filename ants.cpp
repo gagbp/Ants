@@ -4,7 +4,7 @@
 #include <utility>      /* pair */
 #include <iostream>
 #include <fstream>
-
+#include <omp.h>
 /*
 Variáveis do sistema
   Tamanho da matriz
@@ -17,8 +17,8 @@ Step-by-Step
   Criar ambiente x
   Dispor itens  x
   Dispor agentes  x
-  Definir deslocamento  
-  Definir regras de pegar/largar 
+  Definir deslocamento
+  Definir regras de pegar/largar
 
 Regras
   Regra de movimentação
@@ -71,16 +71,48 @@ Matriz Cria_Matriz(int n) // Cria matriz n x n
   return m;
 }
 
+Matriz Cria_MatrizVisao(Matriz campo,Formiga f){
+	Matriz visao;
+	visao.N = 3; // tamnho maximo para a visao da formiga , acho q ta bom
+	visao.tab = (int **)malloc(3 * sizeof(int*));
+	for(int i = 0; i < 3; i++){
+		visao.tab[i] = (int *)malloc(3 * sizeof(int));
+	}
+	for (int i = 0 ; i < visao.N ; i++){
+		for(int j = 0 ; j < visao.N ; j++){
+			try{
+				visao.tab[i][j] = campo.tab[f.Posicao.first -1 + i][f.Posicao.second -1 +j];
+			} catch(const std::exception& e) {
+				visao.tab[i][j] = 1; // pode acontecer da visao passar do maximo da matriz, entao deixei  1 para nao atrbalhar a visao;
+			}
+
+		}
+	}
+	return visao;
+}
+
+void LiberarMatrizVisao(Matriz visao){
+	for(int i = 0 ; i< 3 ; i++){
+		free(visao.tab[i]);
+	}
+	free(visao.tab);
+}
+
 void Print_Matriz(int **visited, int N)
 {
-    for (int i = 0; i < N; i++)
+		//if(system("CLS")) system("clear");
+		for (int i = 0; i < N; i++)
     {
         for (int j = 0; j < N; j++)
             printf("%2d ", visited[i][j]);
         printf("\n");
     }
     printf("\n");
+		//Print_Matriz(visited,N);
 }
+
+
+
 
 Formiga Cria_Formiga(int x, int y) // Cria um agente com posição <x,y>
 {
@@ -187,7 +219,8 @@ bool Soltar(Matriz visao)
 int main(int argc, char **argv)
 {
   int N = 20;
-  srand(time(NULL));
+	int nthreads,tid;
+	srand(time(NULL));
   Matriz M = Cria_Matriz(N);// Cria o ambiente
   for (int i = 0; i < M.N; i++)// Preenche a matriz com 0 e 1 randomicamente
   {
@@ -196,21 +229,54 @@ int main(int argc, char **argv)
       M.tab[i][j] = rand() % 2;
     }
   }
-  Print_Matriz(M.tab, M.N);
 
-  // Cria os agentes em posição de agentes
-  Formiga f0;
-  f0 = Cria_Formiga((rand()%N),(rand()%N));
+	Print_Matriz(M.tab, M.N);
+ // Cria os agentes em posição de agentes
+
 /*
   printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
 */
+	#pragma omp parallel private(nthreads,tid) shared(M)
+	{
+		tid = omp_get_thread_num();
+		if(tid != 0){ // tid 0 => thread master
+			Formiga f0;
+			Matriz visao;
+			f0 = Cria_Formiga((rand()%N),(rand()%N));
+			for(int passos = 0 ; passos < 10 ; passos++){ // cada Formiga da 1000 passos ateh morrer
+					f0 = Move_Formiga(f0,N);
+					#pragma omp critical
+					{
+						//criar matriz visao
+						visao = Cria_MatrizVisao(M,f0);
+						if(M.tab[f0.Posicao.first][f0.Posicao.second] == 1){ //encontrou sugeira
+							if(Pegar(visao)){ // se pode pegar
+								f0.Carga = true; //pegou
+								M.tab[f0.Posicao.first][f0.Posicao.second] = 0; // liberou lugar
+							}
+						}else{ // ta limpo
+							if(Soltar(visao) && f0.Carga){
+								f0.Carga = false;
+								M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
+							}
+					}
+					printf("oi da thread %d\n",tid);
+			//libear matriz visao;
+			LiberarMatrizVisao(visao);
+			}
+		}
 
-  f0 = Move_Formiga(f0,N);
+		}else{
+			int a;
+			scanf("%d", &a);
+		}
+	}
+
 /*
-  printf("\nf0: <%d,%d>\nf0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second, f0.PosicaoAnt.first, f0.PosicaoAnt.second);
+printf("\nf0: <%d,%d>\nf0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second, f0.PosicaoAnt.first, f0.PosicaoAnt.second);
 */
-
-  int a;
-  scanf("%d", &a);
-  return 0;
+  //int a;
+  //scanf("%d", &a);
+	Print_Matriz(M.tab, M.N);
+	return 0;
 }
