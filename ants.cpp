@@ -51,8 +51,8 @@ Regras
 
 struct Matriz
 {
-	int N;
-  int** tab;
+	int N; // Tamanho da matriz quadrada
+  int** tab; // Ponteiro para a matriz NxN
 };
 
 struct Formiga
@@ -70,6 +70,26 @@ Matriz Cria_Matriz(int n) // Cria matriz n x n
   for(int i = 0; i < n; i++)
     m.tab[i] = (int *)malloc(n * sizeof(int));
   return m;
+}
+
+void Destroi_Matriz(Matriz m)
+{
+  for (int i = 0; i < m.N; i++)
+    free(m.tab[i]);
+  free(m.tab);  
+}
+
+void Print_Matriz(int **visited, int N)
+{
+		//if(system("CLS")) system("clear");
+		for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+            printf("%2d ", visited[i][j]);
+        printf("\n");
+    }
+    printf("\n");
+		//Print_Matriz(visited,N);
 }
 
 Matriz Cria_MatrizVisao(Matriz campo,Formiga f){
@@ -102,19 +122,6 @@ void LiberarMatrizVisao(Matriz visao){
 		free(visao.tab[i]);
 	}
 	free(visao.tab);
-}
-
-void Print_Matriz(int **visited, int N)
-{
-		//if(system("CLS")) system("clear");
-		for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-            printf("%2d ", visited[i][j]);
-        printf("\n");
-    }
-    printf("\n");
-		//Print_Matriz(visited,N);
 }
 
 
@@ -282,7 +289,7 @@ int main(int argc, char **argv)
 								M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
 							}
 					}
-			//libear matriz visao;
+			//libera matriz visao;
 			LiberarMatrizVisao(visao);
 			}
 		}
