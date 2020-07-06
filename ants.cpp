@@ -183,7 +183,7 @@ Formiga Move_Formiga(Formiga F, int N) // Move o agente F
       default:
         break;
     }
-    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >=  N || Aux.Posicao == Aux.PosicaoAnt))
+    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >=  N))
       a = false;
   }
   return Aux;
