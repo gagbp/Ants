@@ -85,14 +85,22 @@ void Destroi_Matriz(Matriz m)
 void Print_Matriz(int **visited, int N)
 {
 		//if(system("CLS")) system("clear");
-		for (int i = 0; i < N; i++)
+		printf("   |");
+    for (int a = 0; a < N; a++)
+      printf("%2d |",a);
+    printf("\n");
+    for (int a = 0; a <= N; a++)
+      printf("----");
+    printf("\n");
+    for (int i = 0; i < N; i++)
     {
+      printf("%2d |",i);
       for (int j = 0; j < N; j++)
       {
         if(visited[i][j] == 1)
-          printf("X ");
+          printf(" X |");
         else
-          printf("  ");
+          printf("   |");
       }
       printf("\n");
     }
@@ -162,6 +170,11 @@ Formiga Move_Formiga(Formiga F, int N) // Move o agente F
     0 1 2
     3 X 4
     5 6 7
+
+      0
+    1 X 2
+      3   
+
   */
   Formiga Aux;
   bool a = true;
@@ -174,37 +187,21 @@ Formiga Move_Formiga(Formiga F, int N) // Move o agente F
   
   while (a)
   {
-    int d = rand()%8;
+    int d = rand()%4;
   
     switch (d)
     {
       case 0:
         Aux.Posicao.first--;
-        Aux.Posicao.second--;
         break;
       case 1:
         Aux.Posicao.second--;
         break;
       case 2:
-        Aux.Posicao.first++;
-        Aux.Posicao.second--;
+        Aux.Posicao.second++;
         break;
       case 3:
-        Aux.Posicao.second--;
-        break;
-      case 4:
-        Aux.Posicao.second++;
-        break;
-      case 5:
         Aux.Posicao.first++;
-        Aux.Posicao.second--;
-        break;
-      case 6:
-        Aux.Posicao.first++;
-        break;
-      case 7:
-        Aux.Posicao.first++;
-        Aux.Posicao.second++;
         break;
       default:
         break;
@@ -293,26 +290,26 @@ int main(int argc, char **argv)
     Matriz visao;
 		tid = omp_get_thread_num();// tid != 0 => thread slave
 		f0 = Cria_Formiga((rand()%N), (rand()%N), P_antigas);
-    printf("thread %d: f0<%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
+    //printf("thread %d: f0<%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
 		for(int p = 0 ; p < Passos ; p++) // cada Formiga da 1000 p ate morrer
     {
 			{
 				srand((int) time(0));
 				f0 = Move_Formiga(f0,N);
-				printf("f%d %s : <%d,%d>\n",tid, f0.Carga ? "True":"False", f0.Posicao.first, f0.Posicao.second);
+				//printf("f%d %s : <%d,%d>\n",tid, f0.Carga ? "True":"False", f0.Posicao.first, f0.Posicao.second);
 				//criar matriz visao
 				visao = Cria_MatrizVisao(M,f0);
 				if(M.tab[f0.Posicao.first][f0.Posicao.second] == 1){ //encontrou sugeira
           #pragma omp critical
           if(!f0.Carga && Pegar(visao)){ // pode pegar
-            printf("pegou\n");
+            printf("%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
             f0.Carga = true; //pegou
             M.tab[f0.Posicao.first][f0.Posicao.second] = 0; // liberou lugar
           }
 				}else{ // ta limpo
 					#pragma omp critical
           if(Soltar(visao) && f0.Carga){ // pode soltar
-						printf("largou\n");
+						printf("%d largou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
 						f0.Carga = false;
 						M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
 					}
@@ -322,7 +319,7 @@ int main(int argc, char **argv)
       }
       //Completou todos p mas ainda tem Carga
       if(p == Passos && f0.Carga)
-        p--;
+        p = p-2;
 	  }
 	}
   #pragma omp barrier
