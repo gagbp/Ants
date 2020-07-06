@@ -50,7 +50,7 @@
 
 */
 
-int Passos = 10;
+int Passos = 10000;
 
 struct Matriz
 {
@@ -179,38 +179,59 @@ Formiga Move_Formiga(Formiga F, int N) // Move o agente F
   Formiga Aux;
   bool a = true;
   bool cond;
-  Aux = Cria_Formiga(F.Posicao.first, F.Posicao.second,F.PosicaoAnt);
-	Aux.Carga = F.Carga;
-  if(Aux.PosicaoAnt.size() >= 3){
-		Aux.PosicaoAnt.pop_front();
-	}
-  
+  int count = 0;
   while (a)
   {
-    int d = rand()%4;
-  
-    switch (d)
+    int d = rand()%8;
+    Aux = Cria_Formiga(F.Posicao.first, F.Posicao.second,F.PosicaoAnt);
+	  switch (d)
     {
       case 0:
         Aux.Posicao.first--;
+        Aux.Posicao.second--;
         break;
       case 1:
         Aux.Posicao.second--;
         break;
       case 2:
-        Aux.Posicao.second++;
+        Aux.Posicao.first++;
+        Aux.Posicao.second--;
         break;
       case 3:
+        Aux.Posicao.second--;
+        break;
+      case 4:
+        Aux.Posicao.second++;
+        break;
+      case 5:
         Aux.Posicao.first++;
+        Aux.Posicao.second--;
+        break;
+      case 6:
+        Aux.Posicao.first++;
+        break;
+      case 7:
+        Aux.Posicao.first++;
+        Aux.Posicao.second++;
         break;
       default:
         break;
     }
 		cond = ProcuraParNoVetor(Aux.PosicaoAnt,Aux.Posicao);
-    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >=  N || cond))
-      a = false;
+    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >=  N))
+    {
+      if(!cond || count >= 3)
+        a = false;
+      else
+        count++;
+    }
   }
+  Aux.Carga = F.Carga;
+  if(Aux.PosicaoAnt.size() >= 3){
+		Aux.PosicaoAnt.pop_front();
+	}
   Aux.PosicaoAnt.push_back(F.Posicao);
+  
   return Aux;
 }
 
