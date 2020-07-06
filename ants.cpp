@@ -6,6 +6,7 @@
 #include <fstream>
 #include <omp.h>
 #include <ctime>
+#include <list>
 /*
   Variáveis do sistema
     Tamanho da matriz
@@ -49,6 +50,8 @@
 
 */
 
+int Passos = 10;
+
 struct Matriz
 {
 	int N; // Tamanho da matriz quadrada
@@ -59,7 +62,7 @@ struct Formiga
 {
 	bool Carga; // F- não possui carga / V- possui carga
   std::pair <int,int> Posicao; // <x,y> - posição atual na matriz
-  std::pair <int,int> PosicaoAnt; // <x,y> - posição anterior na matriz
+  std::list <std::pair <int,int> > PosicaoAnt; // <x,y> - lista das posições anteriores da formiga
 };
 
 Matriz Cria_Matriz(int n) // Cria matriz n x n
@@ -134,13 +137,23 @@ void LiberarMatrizVisao(Matriz visao)
 
 
 
-Formiga Cria_Formiga(int x, int y) // Cria um agente com posição <x,y>
+Formiga Cria_Formiga(int x, int y, std::list <std::pair <int,int> > antigas) // Cria um agente com posição <x,y>
 {
   Formiga f;
   f.Carga = false;
   f.Posicao = std::make_pair(x,y);
-  f.PosicaoAnt = std::make_pair(x,y);
+  f.PosicaoAnt = antigas;
   return f;
+}
+
+bool ProcuraParNoVetor(std::list <std::pair <int,int>> v, std::pair <int,int> par)
+{
+	for(auto b : v){
+		if(b.first == par.first && b.second == par.second){
+			return true;
+		}
+	}
+	return false;
 }
 
 Formiga Move_Formiga(Formiga F, int N) // Move o agente F
@@ -150,13 +163,19 @@ Formiga Move_Formiga(Formiga F, int N) // Move o agente F
     3 X 4
     5 6 7
   */
-  srand(time(NULL));
   Formiga Aux;
   bool a = true;
+  bool cond;
+  Aux = Cria_Formiga(F.Posicao.first, F.Posicao.second,F.PosicaoAnt);
+	Aux.Carga = F.Carga;
+  if(Aux.PosicaoAnt.size() >= 3){
+		Aux.PosicaoAnt.pop_front();
+	}
+  
   while (a)
   {
-    Aux = Cria_Formiga(F.Posicao.first, F.Posicao.second);
-		int d = rand()%8;
+    int d = rand()%8;
+  
     switch (d)
     {
       case 0:
@@ -190,9 +209,11 @@ Formiga Move_Formiga(Formiga F, int N) // Move o agente F
       default:
         break;
     }
-    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >=  N))
+		cond = ProcuraParNoVetor(Aux.PosicaoAnt,Aux.Posicao);
+    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >=  N || cond))
       a = false;
   }
+  Aux.PosicaoAnt.push_back(F.Posicao);
   return Aux;
 }
 
@@ -239,9 +260,11 @@ bool Soltar(Matriz visao)
 int main(int argc, char **argv)
 {
   int N = 20;
+	int n_visao = 3;
 	int nthreads,tid;
 	int randaux;
 
+	srand( time(0));
   Matriz M = Cria_Matriz(N);// Cria o ambiente
   for (int i = 0; i < M.N; i++)// Preenche a matriz com 0 e 1 randomicamente
   {
@@ -262,15 +285,16 @@ int main(int argc, char **argv)
   //printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
   
 	omp_set_dynamic(0);
-	omp_set_num_threads(1); // numero para thread , 1 eh principal outra eh formiga
+	omp_set_num_threads(4); // numero para thread , 0 eh principal outra eh formiga
   #pragma omp parallel private(nthreads,tid) shared(M)
 	{
     Formiga f0;
+		std::list <std::pair <int,int>> P_antigas;
     Matriz visao;
 		tid = omp_get_thread_num();// tid != 0 => thread slave
-		f0 = Cria_Formiga((rand()%N),(rand()%N));
+		f0 = Cria_Formiga((rand()%N), (rand()%N), P_antigas);
     printf("thread %d: f0<%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
-		for(int passos = 0 ; passos < 10 ; passos++) // cada Formiga da 1000 passos ate morrer
+		for(int p = 0 ; p < Passos ; p++) // cada Formiga da 1000 p ate morrer
     {
 			{
 				srand((int) time(0));
@@ -296,9 +320,9 @@ int main(int argc, char **argv)
         //libera matriz visao;
         LiberarMatrizVisao(visao);
       }
-      //Completou os 1000 passos mas ainda tem Carga
-      if(passos == 999 && f0.Carga)
-        passos--;
+      //Completou todos p mas ainda tem Carga
+      if(p == Passos && f0.Carga)
+        p--;
 	  }
 	}
   #pragma omp barrier
