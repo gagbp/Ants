@@ -1,3 +1,11 @@
+/*
+  Compilar: g++ ants.cpp -fopenmp
+  Executar: ./a.out N O P R
+            N = Ordem da Matriz
+            O = porcentagem de Objetos
+            P = Passos
+            R = Raio de visao
+*/
 #include <stdio.h>      /* printf, scanf, puts, NULL */
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
@@ -50,10 +58,6 @@
 
 */
 
-int Interacoes = 20;
-int Raio = 1;
-int Ambiente = 20;
-
 struct Matriz{
 	int N; // Tamanho da matriz quadrada
   int** tab; // Ponteiro para a matriz NxN
@@ -105,12 +109,12 @@ void Print_Matriz(int **visited, int N){
 		//Print_Matriz(visited,N);
 }
 
-Matriz Cria_MatrizVisao(Matriz campo,Formiga f){
+Matriz Cria_MatrizVisao(Matriz campo, Formiga f, int Raio){
 	Matriz visao;
-	visao.N = 3; // tamnho maximo para a visao da formiga , acho q ta bom
-	visao.tab = (int **)malloc(3 * sizeof(int*));
-	for(int i = 0; i < 3; i++){
-		visao.tab[i] = (int *)malloc(3 * sizeof(int));
+	visao.N = Raio; // tamnho maximo para a visao da formiga , acho q ta bom
+	visao.tab = (int **)malloc(Raio * sizeof(int*));
+	for(int i = 0; i < Raio; i++){
+		visao.tab[i] = (int *)malloc(Raio * sizeof(int));
 	}
 
 	int auxi,auxj;
@@ -120,8 +124,8 @@ Matriz Cria_MatrizVisao(Matriz campo,Formiga f){
 			auxi = f.Posicao.first -1 + i;
 			auxj = f.Posicao.second -1 +j;
 
-		if(auxi >= 20 || auxi < 0 || auxj >= 20 || auxj < 0){
-			  visao.tab[i][j] = 1;
+		  if(auxi >= campo.N || auxi < 0 || auxj >= campo.N || auxj < 0){
+			  visao.tab[i][j] = 0;
 			}else{
 			  visao.tab[i][j] = campo.tab[auxi][auxj];
 		  }
@@ -158,16 +162,6 @@ bool ProcuraParNoVetor(std::list <std::pair <int,int>> v, std::pair <int,int> pa
 }
 
 Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
-  /*
-    0 1 2
-    3 X 4
-    5 6 7
-
-      0
-    1 X 2
-      3   
-
-  */
   Formiga Aux;
   bool a = true;
   bool cond;
@@ -199,7 +193,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
         }
       }
       else {
-        if(F.Posicao.second == Ambiente-1) {//<0,n-1>
+        if(F.Posicao.second == N-1) {//<0,n-1>
           /*
             0 X
             1 2
@@ -251,7 +245,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
       }
     }
     else {
-      if(F.Posicao.first == Ambiente-1) {
+      if(F.Posicao.first == N-1) {
         if(F.Posicao.second == 0) {//<n-1,0>
           /*
             0 1
@@ -274,7 +268,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
           }
         }
         else {
-          if(F.Posicao.second == Ambiente-1) {//<n-1,n-1>
+          if(F.Posicao.second == N-1) {//<n-1,n-1>
             /*
               0 1
               2 X
@@ -356,7 +350,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
           }
         }
         else{
-          if(F.Posicao.second == Ambiente-1){//<x,0>
+          if(F.Posicao.second == N-1){//<x,0>
             /*
             0 1
             2 X
@@ -430,15 +424,13 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
     }
     
 		cond = ProcuraParNoVetor(Aux.PosicaoAnt,Aux.Posicao);
-    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >=  N)) {
-      if(!cond || count >= 3)
-        a = false;
-      else
-        count++;
-    }
+    if(!cond || count >= 3)
+      a = false;
+    else
+      count++;
   }
   Aux.Carga = F.Carga;
-  if(Aux.PosicaoAnt.size() >= 3){
+  if(Aux.PosicaoAnt.size() >= 5){
 		Aux.PosicaoAnt.pop_front();
 	}
   Aux.PosicaoAnt.push_back(F.Posicao);
@@ -479,13 +471,25 @@ bool Soltar(Matriz visao){
 
 
 int main(int argc, char **argv){
-  int N = 20;
-	int n_visao = 3;
-	int nthreads,tid;
+/*
+  N = Ordem da Matriz
+  O = porcentagem de Objetos
+  P = Passos
+  R = Raio de visao
+*/
+
+  int N = atoi(argv[1]);
+  int O = atoi(argv[2]);
+  int P = atoi(argv[3]);
+  int R = 2*atoi(argv[4]) + 1;
+
+	
+  int nthreads,tid;
 	int randaux;
 
 	srand( time(0));
   Matriz M = Cria_Matriz(N);// Cria o ambiente
+  int count = 0;
   for (int i = 0; i < M.N; i++)// Preenche a matriz com 0 e 1 randomicamente
   {
     for (int j = 0; j < M.N; j++)
@@ -493,6 +497,7 @@ int main(int argc, char **argv){
 			randaux = rand()%4;
 			if(randaux == 1){
 			  M.tab[i][j] = 1;
+        count++;
       }else{
         M.tab[i][j] = 0;
       }
@@ -505,7 +510,7 @@ int main(int argc, char **argv){
   // printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
   
 	omp_set_dynamic(0);
-	omp_set_num_threads(4); // numero para thread , 0 eh principal outra eh formiga
+	omp_set_num_threads(10); // numero de threads
   #pragma omp parallel private(nthreads,tid) shared(M)
 	{
     Formiga f0;
@@ -514,15 +519,14 @@ int main(int argc, char **argv){
 		tid = omp_get_thread_num();// tid != 0 => thread slave
 		f0 = Cria_Formiga((rand()%N), (rand()%N), P_antigas);
     //printf("thread %d: f0<%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
-		int p = 0;
-    while(p < Interacoes) // cada Formiga da 1000 p ate morrer
+    for(int p = 0;p < P; p++) // cada Formiga da 1000 p ate morrer
     {
 			{
 				srand((int) time(0));
 				f0 = Move_Formiga(f0,N);
 				//printf("f%d %s : <%d,%d>\n",tid, f0.Carga ? "True":"False", f0.Posicao.first, f0.Posicao.second);
 				//criar matriz visao
-				visao = Cria_MatrizVisao(M,f0);
+				visao = Cria_MatrizVisao(M,f0,R);
 				if(M.tab[f0.Posicao.first][f0.Posicao.second] == 1){ //encontrou sugeira
           if(!f0.Carga && Pegar(visao)){ // pode pegar
             //printf("%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
@@ -536,7 +540,6 @@ int main(int argc, char **argv){
 					if(Soltar(visao) && f0.Carga){ // pode soltar
 						//printf("%d largou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
 						f0.Carga = false;
-            p++;
 						#pragma omp critical
             {
               M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
@@ -547,8 +550,8 @@ int main(int argc, char **argv){
         LiberarMatrizVisao(visao);
       }
       //Completou todos p mas ainda tem Carga
-      if(p == Interacoes && f0.Carga)
-        p = p-2;
+      if(p == P-1 && f0.Carga)
+        p--;
 
 	  }
     printf("f%d %s\n", tid, f0.Carga ? "True":"False");
