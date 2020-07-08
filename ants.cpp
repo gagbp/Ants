@@ -50,23 +50,22 @@
 
 */
 
-int Passos = 10000;
+int Interacoes = 20;
+int Raio = 1;
+int Ambiente = 20;
 
-struct Matriz
-{
+struct Matriz{
 	int N; // Tamanho da matriz quadrada
   int** tab; // Ponteiro para a matriz NxN
 };
 
-struct Formiga
-{
+struct Formiga{
 	bool Carga; // F- não possui carga / V- possui carga
   std::pair <int,int> Posicao; // <x,y> - posição atual na matriz
   std::list <std::pair <int,int> > PosicaoAnt; // <x,y> - lista das posições anteriores da formiga
 };
 
-Matriz Cria_Matriz(int n) // Cria matriz n x n
-{
+Matriz Cria_Matriz(int n){ // Cria matriz n x n
   Matriz m;
   m.N = n;
   m.tab = (int **)malloc(n * sizeof(int*));
@@ -75,15 +74,13 @@ Matriz Cria_Matriz(int n) // Cria matriz n x n
   return m;
 }
 
-void Destroi_Matriz(Matriz m)
-{
+void Destroi_Matriz(Matriz m){
   for (int i = 0; i < m.N; i++)
     free(m.tab[i]);
   free(m.tab);  
 }
 
-void Print_Matriz(int **visited, int N)
-{
+void Print_Matriz(int **visited, int N){
 		//if(system("CLS")) system("clear");
 		printf("   |");
     for (int a = 0; a < N; a++)
@@ -108,8 +105,7 @@ void Print_Matriz(int **visited, int N)
 		//Print_Matriz(visited,N);
 }
 
-Matriz Cria_MatrizVisao(Matriz campo,Formiga f)
-{
+Matriz Cria_MatrizVisao(Matriz campo,Formiga f){
 	Matriz visao;
 	visao.N = 3; // tamnho maximo para a visao da formiga , acho q ta bom
 	visao.tab = (int **)malloc(3 * sizeof(int*));
@@ -134,8 +130,7 @@ Matriz Cria_MatrizVisao(Matriz campo,Formiga f)
 	return visao;
 }
 
-void LiberarMatrizVisao(Matriz visao)
-{
+void LiberarMatrizVisao(Matriz visao){
 	for(int i = 0 ; i< 3 ; i++){
 		free(visao.tab[i]);
 	}
@@ -144,9 +139,8 @@ void LiberarMatrizVisao(Matriz visao)
 
 
 
+Formiga Cria_Formiga(int x, int y, std::list <std::pair <int,int> > antigas){ // Cria um agente com posição <x,y>
 
-Formiga Cria_Formiga(int x, int y, std::list <std::pair <int,int> > antigas) // Cria um agente com posição <x,y>
-{
   Formiga f;
   f.Carga = false;
   f.Posicao = std::make_pair(x,y);
@@ -154,8 +148,7 @@ Formiga Cria_Formiga(int x, int y, std::list <std::pair <int,int> > antigas) // 
   return f;
 }
 
-bool ProcuraParNoVetor(std::list <std::pair <int,int>> v, std::pair <int,int> par)
-{
+bool ProcuraParNoVetor(std::list <std::pair <int,int>> v, std::pair <int,int> par){
 	for(auto b : v){
 		if(b.first == par.first && b.second == par.second){
 			return true;
@@ -164,8 +157,7 @@ bool ProcuraParNoVetor(std::list <std::pair <int,int>> v, std::pair <int,int> pa
 	return false;
 }
 
-Formiga Move_Formiga(Formiga F, int N) // Move o agente F
-{
+Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
   /*
     0 1 2
     3 X 4
@@ -184,42 +176,261 @@ Formiga Move_Formiga(Formiga F, int N) // Move o agente F
   {
     int d = rand()%8;
     Aux = Cria_Formiga(F.Posicao.first, F.Posicao.second,F.PosicaoAnt);
-	  switch (d)
-    {
-      case 0:
-        Aux.Posicao.first--;
-        Aux.Posicao.second--;
-        break;
-      case 1:
-        Aux.Posicao.second--;
-        break;
-      case 2:
-        Aux.Posicao.first++;
-        Aux.Posicao.second--;
-        break;
-      case 3:
-        Aux.Posicao.second--;
-        break;
-      case 4:
-        Aux.Posicao.second++;
-        break;
-      case 5:
-        Aux.Posicao.first++;
-        Aux.Posicao.second--;
-        break;
-      case 6:
-        Aux.Posicao.first++;
-        break;
-      case 7:
-        Aux.Posicao.first++;
-        Aux.Posicao.second++;
-        break;
-      default:
-        break;
+	  if(F.Posicao.first == 0) {
+      if(F.Posicao.second == 0) {//<0,0>
+        /*
+          X 0
+          1 2
+        */
+        d = rand()%3;
+        switch(d){
+          case 0:
+            Aux.Posicao.second++;
+            break;
+          case 1:
+            Aux.Posicao.first++;
+            break;
+          case 2:
+            Aux.Posicao.first++;
+            Aux.Posicao.second++;
+            break;
+          default:
+            break;
+        }
+      }
+      else {
+        if(F.Posicao.second == Ambiente-1) {//<0,n-1>
+          /*
+            0 X
+            1 2
+          */
+          d = rand()%3;
+          switch(d){
+            case 0:
+              Aux.Posicao.second--;
+              break;
+            case 1:
+              Aux.Posicao.first++;
+              Aux.Posicao.second--;
+              break;
+            case 2:
+              Aux.Posicao.first++;
+              break;
+            default:
+              break;
+          }
+        }
+        else { //<0,y>
+          /*
+            0 X 1
+            2 3 4
+          */
+          d = rand()%5;
+          switch(d) {
+            case 0:
+              Aux.Posicao.second--;
+              break;
+            case 1:
+              Aux.Posicao.second++;
+              break;
+            case 2:
+              Aux.Posicao.first++;
+              Aux.Posicao.second--;
+              break;
+            case 3:
+              Aux.Posicao.first++;
+              break;
+            case 4:
+              Aux.Posicao.first++;
+              Aux.Posicao.second++;
+              break;
+            default:
+              break;
+          }
+        }
+      }
     }
+    else {
+      if(F.Posicao.first == Ambiente-1) {
+        if(F.Posicao.second == 0) {//<n-1,0>
+          /*
+            0 1
+            X 2
+          */
+          d = rand()%3;
+          switch(d) {
+            case 0:
+              Aux.Posicao.first--;
+              break;
+            case 1:
+              Aux.Posicao.first--;
+              Aux.Posicao.second++;
+              break;
+            case 2:
+              Aux.Posicao.second++;
+              break;
+            default:
+              break;
+          }
+        }
+        else {
+          if(F.Posicao.second == Ambiente-1) {//<n-1,n-1>
+            /*
+              0 1
+              2 X
+            */
+            d = rand()%3;
+            switch(d) {
+              case 0:
+                Aux.Posicao.first--;
+                Aux.Posicao.second--;
+                break;
+              case 1:
+                Aux.Posicao.first--;
+                break;
+              case 2:
+                Aux.Posicao.second--;
+                break;
+              default:
+                break;
+            }
+          }
+          else{//<n-1,y>
+            /*
+              0 1 2
+              3 X 4
+            */
+            d = rand()%5;
+            switch(d) {
+              case 0:
+                Aux.Posicao.first--;
+                Aux.Posicao.second--;
+                break;
+              case 1:
+                Aux.Posicao.first--;
+                break;
+              case 2:
+                Aux.Posicao.first--;
+                Aux.Posicao.second++;
+                break;
+              case 3:
+                Aux.Posicao.second--;
+                break;
+              case 4:
+                Aux.Posicao.second++;
+                break;
+              default:
+                break;
+            }
+          }
+        }
+      }
+      else{
+        if(F.Posicao.second == 0){//<x,0>
+          /*
+          0 1
+          X 2
+          3 4
+          */
+          d = rand()%5;
+          switch(d) {
+            case 0:
+              Aux.Posicao.first--;
+              break;
+            case 1:
+              Aux.Posicao.first--;
+              Aux.Posicao.second++;
+              break;
+            case 2:
+              Aux.Posicao.second++;
+              break;
+            case 3:
+              Aux.Posicao.first++;
+              break;
+            case 4:
+              Aux.Posicao.first++;
+              Aux.Posicao.second++;
+              break;
+            default:
+              break;
+          }
+        }
+        else{
+          if(F.Posicao.second == Ambiente-1){//<x,0>
+            /*
+            0 1
+            2 X
+            3 4
+            */
+            d = rand()%5;
+            switch(d) {
+              case 0:
+                Aux.Posicao.first--;
+                Aux.Posicao.second--;
+                break;
+              case 1:
+                Aux.Posicao.first--;
+                break;
+              case 2:
+                Aux.Posicao.second--;
+                break;
+              case 3:
+                Aux.Posicao.first++;
+                Aux.Posicao.second--;
+                break;
+              case 4:
+                Aux.Posicao.first++;
+                break;
+              default:
+                break;
+            }
+          }
+          else{//<x,y>
+            /*
+            0 1 2
+            3 X 4
+            5 6 7
+            */
+            d = rand()%8;
+            switch (d) {
+              case 0:
+                Aux.Posicao.first--;
+                Aux.Posicao.second--;
+                break;
+              case 1:
+                Aux.Posicao.second--;
+                break;
+              case 2:
+                Aux.Posicao.first++;
+                Aux.Posicao.second--;
+                break;
+              case 3:
+                Aux.Posicao.second--;
+                break;
+              case 4:
+                Aux.Posicao.second++;
+                break;
+              case 5:
+                Aux.Posicao.first++;
+                Aux.Posicao.second--;
+                break;
+              case 6:
+                Aux.Posicao.first++;
+                break;
+              case 7:
+                Aux.Posicao.first++;
+                Aux.Posicao.second++;
+                break;
+              default:
+                break;
+            }
+          }
+        }
+      }
+    }
+    
 		cond = ProcuraParNoVetor(Aux.PosicaoAnt,Aux.Posicao);
-    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >=  N))
-    {
+    if (!(Aux.Posicao.first < 0 || Aux.Posicao.second < 0 || Aux.Posicao.first >= N || Aux.Posicao.second >=  N)) {
       if(!cond || count >= 3)
         a = false;
       else
@@ -235,48 +446,39 @@ Formiga Move_Formiga(Formiga F, int N) // Move o agente F
   return Aux;
 }
 
-bool Pegar(Matriz visao)
-{
+bool Pegar(Matriz visao){
   int cont = 0;
-  for (int i = 0; i < visao.N; i++)
-  {
-    for (int j = 0; j < visao.N; j++)
-    {
-      if (visao.tab[i][j]==1)
-      {
+  for (int i = 0; i < visao.N; i++) {
+    for (int j = 0; j < visao.N; j++) {
+      if (visao.tab[i][j]==1) {
         cont++;
       }
     }
   }
-  if (cont< (visao.N*visao.N)/2)
-  {
+  if (cont< (visao.N*visao.N)/2) {
     return true;
   }
   return false;
 }
 
-bool Soltar(Matriz visao)
-{
+bool Soltar(Matriz visao){
   int cont = 0;
-  for (int i = 0; i < visao.N; i++)
-  {
-    for (int j = 0; j < visao.N; j++)
-    {
-      if (visao.tab[i][j]==1)
-      {
+  for (int i = 0; i < visao.N; i++) {
+    for (int j = 0; j < visao.N; j++) {
+      if (visao.tab[i][j]==1) {
         cont++;
       }
     }
   }
-  if (cont>= (visao.N*visao.N)/2)
-  {
+  if (cont>= (visao.N*visao.N)/2) {
     return true;
   }
   return false;
 }
 
-int main(int argc, char **argv)
-{
+
+
+int main(int argc, char **argv){
   int N = 20;
 	int n_visao = 3;
 	int nthreads,tid;
@@ -298,9 +500,9 @@ int main(int argc, char **argv)
   }
 
 	Print_Matriz(M.tab, M.N);
- // Cria os agentes em posição de agentes
+  // Cria os agentes em posição de agentes
 
-  //printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
+  // printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
   
 	omp_set_dynamic(0);
 	omp_set_num_threads(4); // numero para thread , 0 eh principal outra eh formiga
@@ -312,7 +514,8 @@ int main(int argc, char **argv)
 		tid = omp_get_thread_num();// tid != 0 => thread slave
 		f0 = Cria_Formiga((rand()%N), (rand()%N), P_antigas);
     //printf("thread %d: f0<%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
-		for(int p = 0 ; p < Passos ; p++) // cada Formiga da 1000 p ate morrer
+		int p = 0;
+    while(p < Interacoes) // cada Formiga da 1000 p ate morrer
     {
 			{
 				srand((int) time(0));
@@ -321,27 +524,34 @@ int main(int argc, char **argv)
 				//criar matriz visao
 				visao = Cria_MatrizVisao(M,f0);
 				if(M.tab[f0.Posicao.first][f0.Posicao.second] == 1){ //encontrou sugeira
-          #pragma omp critical
           if(!f0.Carga && Pegar(visao)){ // pode pegar
-            printf("%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
+            //printf("%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
             f0.Carga = true; //pegou
-            M.tab[f0.Posicao.first][f0.Posicao.second] = 0; // liberou lugar
+            #pragma omp critical
+            {
+              M.tab[f0.Posicao.first][f0.Posicao.second] = 0; // liberou lugar
+            }
           }
 				}else{ // ta limpo
-					#pragma omp critical
-          if(Soltar(visao) && f0.Carga){ // pode soltar
-						printf("%d largou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
+					if(Soltar(visao) && f0.Carga){ // pode soltar
+						//printf("%d largou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
 						f0.Carga = false;
-						M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
+            p++;
+						#pragma omp critical
+            {
+              M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
+            }
 					}
         }
         //libera matriz visao;
         LiberarMatrizVisao(visao);
       }
       //Completou todos p mas ainda tem Carga
-      if(p == Passos && f0.Carga)
+      if(p == Interacoes && f0.Carga)
         p = p-2;
+
 	  }
+    printf("f%d %s\n", tid, f0.Carga ? "True":"False");
 	}
   #pragma omp barrier
   Print_Matriz(M.tab, M.N);
