@@ -471,14 +471,12 @@ bool Soltar(Matriz visao){
 
 void Encher_Matriz(Matriz m,float p){
 	int qtd = (int) p*m.N*m.N/100;
-	printf("qtd %d\n",qtd );
+	//printf("qtd %d\n",qtd );
 
-int cont_aux = 0;
+  int cont_aux = 0;
 
-	for (int i = 0; i < m.N; i++)// Preenche a matriz com 0 e 1 randomicamente
-  {
-    for (int j = 0; j < m.N; j++)
-    {
+	for (int i = 0; i < m.N; i++){// Preenche a matriz com 0 e 1 randomicamente
+    for (int j = 0; j < m.N; j++){
 			if(cont_aux <= qtd ){
 			  m.tab[i][j] = 1;
         cont_aux++;
@@ -500,6 +498,7 @@ int cont_aux = 0;
 		}
 	}
 }
+
 int main(int argc, char **argv){
 /*
   N = Ordem da Matriz
@@ -521,7 +520,7 @@ int main(int argc, char **argv){
   Matriz M = Cria_Matriz(N);// Cria o ambiente
   int count = 0;
 
-	printf("%d\n",O );
+	//printf("%d\n",O );
 	Encher_Matriz(M,O);
 
 	Print_Matriz(M.tab, M.N);
