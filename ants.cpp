@@ -15,6 +15,7 @@
 #include <omp.h>
 #include <ctime>
 #include <list>
+#include <algorithm>
 /*
   Variáveis do sistema
     Tamanho da matriz
@@ -81,7 +82,7 @@ Matriz Cria_Matriz(int n){ // Cria matriz n x n
 void Destroi_Matriz(Matriz m){
   for (int i = 0; i < m.N; i++)
     free(m.tab[i]);
-  free(m.tab);  
+  free(m.tab);
 }
 
 void Print_Matriz(int **visited, int N){
@@ -422,7 +423,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
         }
       }
     }
-    
+
 		cond = ProcuraParNoVetor(Aux.PosicaoAnt,Aux.Posicao);
     if(!cond || count >= 3)
       a = false;
@@ -434,7 +435,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
 		Aux.PosicaoAnt.pop_front();
 	}
   Aux.PosicaoAnt.push_back(F.Posicao);
-  
+
   return Aux;
 }
 
@@ -468,8 +469,37 @@ bool Soltar(Matriz visao){
   return false;
 }
 
+void Encher_Matriz(Matriz m,float p){
+	int qtd = (int) p*m.N*m.N/100;
+	printf("qtd %d\n",qtd );
 
+int cont_aux = 0;
 
+	for (int i = 0; i < m.N; i++)// Preenche a matriz com 0 e 1 randomicamente
+  {
+    for (int j = 0; j < m.N; j++)
+    {
+			if(cont_aux <= qtd ){
+			  m.tab[i][j] = 1;
+        cont_aux++;
+      }else{
+        m.tab[i][j] = 0;
+      }
+		}
+  }
+
+	//std::random_shuffle(m.tab, (m.tab + m.N));
+	for (int i = m.N -1 ; i != 0; i--){
+		for (int j = m.N -1 ;j != 0; j--){
+			int randi = rand() % m.N;
+			int randj = rand() % m.N;
+			int aux =  m.tab[i][j];
+			m.tab[i][j] = m.tab[randi][randj];
+			m.tab[randi][randj] = aux;
+
+		}
+	}
+}
 int main(int argc, char **argv){
 /*
   N = Ordem da Matriz
@@ -483,32 +513,22 @@ int main(int argc, char **argv){
   int P = atoi(argv[3]);
   int R = 2*atoi(argv[4]) + 1;
 
-	
+
   int nthreads,tid;
 	int randaux;
 
 	srand( time(0));
   Matriz M = Cria_Matriz(N);// Cria o ambiente
   int count = 0;
-  for (int i = 0; i < M.N; i++)// Preenche a matriz com 0 e 1 randomicamente
-  {
-    for (int j = 0; j < M.N; j++)
-    {
-			randaux = rand()%4;
-			if(randaux == 1){
-			  M.tab[i][j] = 1;
-        count++;
-      }else{
-        M.tab[i][j] = 0;
-      }
-		}
-  }
+
+	printf("%d\n",O );
+	Encher_Matriz(M,O);
 
 	Print_Matriz(M.tab, M.N);
   // Cria os agentes em posição de agentes
 
   // printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
-  
+
 	omp_set_dynamic(0);
 	omp_set_num_threads(10); // numero de threads
   #pragma omp parallel private(nthreads,tid) shared(M)
