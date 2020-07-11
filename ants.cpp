@@ -16,6 +16,7 @@
 #include <ctime>
 #include <list>
 #include <algorithm>
+#include <math.h>
 /*
   Variáveis do sistema
     Tamanho da matriz
@@ -122,21 +123,30 @@ Matriz Cria_MatrizVisao(Matriz campo, Formiga f, int Raio){
 
 	for (int i = 0 ; i < visao.N ; i++){
 		for(int j = 0 ; j < visao.N ; j++){
-			auxi = f.Posicao.first -1 + i;
-			auxj = f.Posicao.second -1 +j;
+			auxi = f.Posicao.first - ( Raio-1 /2) + i;
+			auxj = f.Posicao.second -( Raio-1 /2) + j;
+		  //if(auxi >= campo.N || auxi < 0 || auxj >= campo.N || auxj < 0){
+			if(auxi >= campo.N){
+				auxi = auxi - campo.N;
+			}
+			if(auxi < 0){
+				auxi = campo.N + auxi;
+			}
+			if(auxj >= campo.N){
+				auxj = auxj - campo.N;
+			}
+			if(auxi < 0){
+				auxj = campo.N + auxj;
+			}
 
-		  if(auxi >= campo.N || auxi < 0 || auxj >= campo.N || auxj < 0){
-			  visao.tab[i][j] = 0;
-			}else{
-			  visao.tab[i][j] = campo.tab[auxi][auxj];
-		  }
+			visao.tab[i][j] = campo.tab[auxi][auxj];
 	  }
   }
 	return visao;
 }
 
 void LiberarMatrizVisao(Matriz visao){
-	for(int i = 0 ; i< 3 ; i++){
+	for(int i = 0 ; i< visao.N ; i++){
 		free(visao.tab[i]);
 	}
 	free(visao.tab);
@@ -431,7 +441,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
       count++;
   }
   Aux.Carga = F.Carga;
-  if(Aux.PosicaoAnt.size() >= 5){
+  if(Aux.PosicaoAnt.size() >= 20){
 		Aux.PosicaoAnt.pop_front();
 	}
   Aux.PosicaoAnt.push_back(F.Posicao);
@@ -443,35 +453,37 @@ bool Pegar(Matriz visao){
   int cont = 0;
   for (int i = 0; i < visao.N; i++) {
     for (int j = 0; j < visao.N; j++) {
-      if (visao.tab[i][j]==1) {
+      if (visao.tab[i][j]==1 && i != (visao.N/2) +1  && j != (visao.N/2) +1) {
         cont++;
       }
     }
   }
-  if (cont< (visao.N*visao.N)/2) {
-    return true;
-  }
-  return false;
+	int aux = visao.N -1;
+	int probilidade =(int) 100 * pow( (aux - cont)/ aux, 2 );
+	int random = rand() % 100;
+	return (probilidade >= random);
+
+
 }
 
 bool Soltar(Matriz visao){
   int cont = 0;
   for (int i = 0; i < visao.N; i++) {
     for (int j = 0; j < visao.N; j++) {
-      if (visao.tab[i][j]==1) {
+      if (visao.tab[i][j]==1 && i != (visao.N/2) +1  && j != (visao.N/2) +1  ) { // nao vai contar o centro
         cont++;
       }
     }
   }
-  if (cont>= (visao.N*visao.N)/2) {
-    return true;
-  }
-  return false;
+	int aux = visao.N -1;
+	int probilidade =(int) 100 * pow( (aux - cont)/ aux , 2 );
+	int random = rand() % 100;
+	return (probilidade < random);
 }
 
-void Encher_Matriz(Matriz m,float p){
+void Encher_Matriz(Matriz m,int p){
 	int qtd = (int) p*m.N*m.N/100;
-	//printf("qtd %d\n",qtd );
+	printf("qtd %d\n",qtd );
 
   int cont_aux = 0;
 
@@ -499,6 +511,34 @@ void Encher_Matriz(Matriz m,float p){
 	}
 }
 
+
+int fileout_matriz (Matriz m, FILE *infile){
+
+	fprintf(infile,"   |");
+	for (int a = 0; a < m.N; a++)
+		fprintf(infile,"%2d |",a);
+	fprintf(infile,"\n");
+	for (int a = 0; a <= m.N; a++)
+		fprintf(infile,"----");
+	fprintf(infile,"\n");
+	for (int i = 0; i < m.N; i++)
+	{
+		fprintf(infile,"%2d |",i);
+		for (int j = 0; j < m.N; j++)
+		{
+			if(m.tab[i][j] == 1)
+				fprintf(infile," X |");
+			else
+				fprintf(infile,"   |");
+		}
+		fprintf(infile,"\n");
+	}
+	fprintf(infile,"\n");
+
+return 0;
+}
+
+
 int main(int argc, char **argv){
 /*
   N = Ordem da Matriz
@@ -516,6 +556,9 @@ int main(int argc, char **argv){
   int nthreads,tid;
 	int randaux;
 
+	char filename[100];
+	FILE *fmat;
+
 	srand( time(0));
   Matriz M = Cria_Matriz(N);// Cria o ambiente
   int count = 0;
@@ -523,8 +566,15 @@ int main(int argc, char **argv){
 	//printf("%d\n",O );
 	Encher_Matriz(M,O);
 
+	if(M.N <= 25){
 	Print_Matriz(M.tab, M.N);
+	}
   // Cria os agentes em posição de agentes
+
+	sprintf(filename, "matriz_inicio.txt");
+	fmat = fopen(filename,"w");
+	fileout_matriz(M, fmat);
+	fclose(fmat);
 
   // printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
 
@@ -546,38 +596,53 @@ int main(int argc, char **argv){
 				//printf("f%d %s : <%d,%d>\n",tid, f0.Carga ? "True":"False", f0.Posicao.first, f0.Posicao.second);
 				//criar matriz visao
 				visao = Cria_MatrizVisao(M,f0,R);
+				#pragma omp critical
+				{
 				if(M.tab[f0.Posicao.first][f0.Posicao.second] == 1){ //encontrou sugeira
           if(!f0.Carga && Pegar(visao)){ // pode pegar
             //printf("%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
             f0.Carga = true; //pegou
-            #pragma omp critical
-            {
               M.tab[f0.Posicao.first][f0.Posicao.second] = 0; // liberou lugar
-            }
+
           }
 				}else{ // ta limpo
 					if(Soltar(visao) && f0.Carga){ // pode soltar
 						//printf("%d largou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
 						f0.Carga = false;
-						#pragma omp critical
-            {
-              M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
-            }
+            M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
 					}
         }
+			}
         //libera matriz visao;
         LiberarMatrizVisao(visao);
       }
+
+			if(tid == 0 && p%(P/5) == 0){
+
+				sprintf(filename, "matriztime%d.txt",p);
+				fmat = fopen(filename,"w");
+				fileout_matriz(M, fmat);
+				fclose(fmat);
+
+			}
       //Completou todos p mas ainda tem Carga
       if(p == P-1 && f0.Carga)
-        p--;
+      	p--;
 
 	  }
     printf("f%d %s\n", tid, f0.Carga ? "True":"False");
 	}
   #pragma omp barrier
-  Print_Matriz(M.tab, M.N);
-  /*
+
+	if(M.N <= 25){
+	Print_Matriz(M.tab, M.N);
+	}
+
+	sprintf(filename, "matriz_fim.txt" );
+	fmat = fopen(filename,"w");
+	fileout_matriz(M, fmat);
+	fclose(fmat);
+	/*
   printf("\nf0: <%d,%d>\nf0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second, f0.PosicaoAnt.first, f0.PosicaoAnt.second);
   */
   //int a;
