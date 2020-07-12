@@ -1,5 +1,5 @@
 /*
-  Compilar: g++ ants.cpp -fopenmp
+  Compilar: g++ ants.cpp -fopenmp -std=c++11
   Executar: ./a.out N O P R
             N = Ordem da Matriz
             O = porcentagem de Objetos
@@ -17,6 +17,8 @@
 #include <list>
 #include <algorithm>
 #include <math.h>
+#include <random>
+#include <chrono>
 /*
   Variáveis do sistema
     Tamanho da matriz
@@ -60,6 +62,13 @@
 
 */
 
+std::default_random_engine dre (std::chrono::steady_clock::now().time_since_epoch().count());     // provide seed
+int random (int lim)
+{
+    std::uniform_int_distribution<int> uid{0,lim};   // help dre to generate nos from 0 to lim (lim included);
+    return uid(dre);    // pass dre as an argument to uid to generate the random no
+}
+
 struct Matriz{
 	int N; // Tamanho da matriz quadrada
   int** tab; // Ponteiro para a matriz NxN
@@ -85,6 +94,8 @@ void Destroi_Matriz(Matriz m){
     free(m.tab[i]);
   free(m.tab);
 }
+
+
 
 void Print_Matriz(int **visited, int N){
 		//if(system("CLS")) system("clear");
@@ -179,7 +190,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
   int count = 0;
   while (a)
   {
-    int d = rand()%8;
+    int d = random(7);
     Aux = Cria_Formiga(F.Posicao.first, F.Posicao.second,F.PosicaoAnt);
 	  if(F.Posicao.first == 0) {
       if(F.Posicao.second == 0) {//<0,0>
@@ -187,7 +198,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
           X 0
           1 2
         */
-        d = rand()%3;
+        d = random(2);
         switch(d){
           case 0:
             Aux.Posicao.second++;
@@ -209,7 +220,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
             0 X
             1 2
           */
-          d = rand()%3;
+          d = random(2);
           switch(d){
             case 0:
               Aux.Posicao.second--;
@@ -230,7 +241,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
             0 X 1
             2 3 4
           */
-          d = rand()%5;
+          d = random(4);
           switch(d) {
             case 0:
               Aux.Posicao.second--;
@@ -262,7 +273,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
             0 1
             X 2
           */
-          d = rand()%3;
+          d = random(2);
           switch(d) {
             case 0:
               Aux.Posicao.first--;
@@ -284,7 +295,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
               0 1
               2 X
             */
-            d = rand()%3;
+            d = random(2);
             switch(d) {
               case 0:
                 Aux.Posicao.first--;
@@ -305,7 +316,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
               0 1 2
               3 X 4
             */
-            d = rand()%5;
+            d = random(4);
             switch(d) {
               case 0:
                 Aux.Posicao.first--;
@@ -337,7 +348,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
           X 2
           3 4
           */
-          d = rand()%5;
+          d = random(4);
           switch(d) {
             case 0:
               Aux.Posicao.first--;
@@ -367,7 +378,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
             2 X
             3 4
             */
-            d = rand()%5;
+            d = random(4);
             switch(d) {
               case 0:
                 Aux.Posicao.first--;
@@ -396,7 +407,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
             3 X 4
             5 6 7
             */
-            d = rand()%8;
+            d = random(7);
             switch (d) {
               case 0:
                 Aux.Posicao.first--;
@@ -460,8 +471,8 @@ bool Pegar(Matriz visao){
   }
 	int aux = visao.N -1;
 	int probilidade =(int) 100 * pow( (aux - cont)/ aux, 2 );
-	int random = rand() % 100;
-	return (probilidade >= random);
+	int r = random(100);
+	return (probilidade >= r);
 
 
 }
@@ -477,8 +488,8 @@ bool Soltar(Matriz visao){
   }
 	int aux = visao.N -1;
 	int probilidade =(int) 100 * pow( (aux - cont)/ aux , 2 );
-	int random = rand() % 100;
-	return (probilidade < random);
+	int r= random(100);
+	return (probilidade < r);
 }
 
 void Encher_Matriz(Matriz m,int p){
@@ -501,8 +512,8 @@ void Encher_Matriz(Matriz m,int p){
 	//std::random_shuffle(m.tab, (m.tab + m.N));
 	for (int i = m.N -1 ; i != 0; i--){
 		for (int j = m.N -1 ;j != 0; j--){
-			int randi = rand() % m.N;
-			int randj = rand() % m.N;
+			int randi = random(m.N-1);
+			int randj = random(m.N-1);
 			int aux =  m.tab[i][j];
 			m.tab[i][j] = m.tab[randi][randj];
 			m.tab[randi][randj] = aux;
@@ -586,7 +597,7 @@ int main(int argc, char **argv){
 		std::list <std::pair <int,int>> P_antigas;
     Matriz visao;
 		tid = omp_get_thread_num();// tid != 0 => thread slave
-		f0 = Cria_Formiga((rand()%N), (rand()%N), P_antigas);
+		f0 = Cria_Formiga((random(N-1)), (random(N-1)), P_antigas);
     //printf("thread %d: f0<%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
     for(int p = 0;p < P; p++) // cada Formiga da 1000 p ate morrer
     {
