@@ -656,10 +656,6 @@ int main(int argc, char **argv){
 	fileout_matriz(M, fmat);
 	fclose(fmat);
   Destroi_Matriz(M);
-	/*
-  printf("\nf0: <%d,%d>\nf0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second, f0.PosicaoAnt.first, f0.PosicaoAnt.second);
-  */
-  //int a;
-  //scanf("%d", &a);
-	return 0;
+	
+  return 0;
 }
