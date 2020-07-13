@@ -1,10 +1,11 @@
 /*
   Compilar: g++ ants.cpp -fopenmp -std=c++11
-  Executar: ./a.out N O P R
+  Executar: ./a.out N O P R F
             N = Ordem da Matriz
             O = porcentagem de Objetos
             P = Passos
             R = Raio de visao
+            F = Numero de Formigas
 */
 #include <stdio.h>      /* printf, scanf, puts, NULL */
 #include <stdlib.h>     /* srand, rand */
@@ -64,9 +65,12 @@
 
 std::default_random_engine dre (std::chrono::steady_clock::now().time_since_epoch().count());     // provide seed
 int random (int lim){
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<int> uid{0,lim};   // help dre to generate nos from 0 to lim (lim included);
     return uid(dre);    // pass dre as an argument to uid to generate the random no
 }
+
 
 struct Matriz{
 	int N; // Tamanho da matriz quadrada
@@ -529,11 +533,9 @@ int fileout_matriz (Matriz m, FILE *infile){
 	for (int a = 0; a <= m.N; a++)
 		fprintf(infile,"----");
 	fprintf(infile,"\n");
-	for (int i = 0; i < m.N; i++)
-	{
+	for (int i = 0; i < m.N; i++){
 		fprintf(infile,"%2d |",i);
-		for (int j = 0; j < m.N; j++)
-		{
+		for (int j = 0; j < m.N; j++){
 			if(m.tab[i][j] == 1)
 				fprintf(infile," X |");
 			else
@@ -542,23 +544,24 @@ int fileout_matriz (Matriz m, FILE *infile){
 		fprintf(infile,"\n");
 	}
 	fprintf(infile,"\n");
-
-return 0;
+  return 0;
 }
 
 
 int main(int argc, char **argv){
-/*
-  N = Ordem da Matriz
-  O = porcentagem de Objetos
-  P = Passos
-  R = Raio de visao
-*/
+  /*
+    N = Ordem da Matriz
+    O = porcentagem de Objetos
+    P = Passos
+    R = Raio de visao
+    F = Numero de Formigas
+  */
 
   int N = atoi(argv[1]);
   int O = atoi(argv[2]);
   int P = atoi(argv[3]);
   int R = 2*atoi(argv[4]) + 1;
+  int F = atoi(argv[5]);
 
 
   int nthreads,tid;
@@ -575,19 +578,21 @@ int main(int argc, char **argv){
 	Encher_Matriz(M,O);
 
 	if(M.N <= 25){
-	Print_Matriz(M.tab, M.N);
+	  Print_Matriz(M.tab, M.N);
 	}
   // Cria os agentes em posição de agentes
 
-	sprintf(filename, "matriz_inicio.txt");
+	sprintf(filename, "matriz.txt");
 	fmat = fopen(filename,"w");
+  fprintf(fmat,"Matriz Inicial\n\n");
 	fileout_matriz(M, fmat);
+  fprintf(fmat,"\n\n\nAlterações\n");
 	fclose(fmat);
 
   // printf("f0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second);
 
 	omp_set_dynamic(0);
-	omp_set_num_threads(10); // numero de threads
+	omp_set_num_threads(F); // numero de threads
   #pragma omp parallel private(nthreads,tid) shared(M)
 	{
     Formiga f0;
@@ -596,48 +601,47 @@ int main(int argc, char **argv){
 		tid = omp_get_thread_num();// tid != 0 => thread slave
 		f0 = Cria_Formiga((random(N-1)), (random(N-1)), P_antigas);
     //printf("thread %d: f0<%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
-    for(int p = 0;p < P; p++) // cada Formiga da 1000 p ate morrer
+    for(int p = 0;p < P; p++) // cada Formiga da P passos ate morrer
     {
-			{
-				srand((int) time(0));
-				f0 = Move_Formiga(f0,N);
-				//printf("f%d %s : <%d,%d>\n",tid, f0.Carga ? "True":"False", f0.Posicao.first, f0.Posicao.second);
-				//criar matriz visao
-				visao = Cria_MatrizVisao(M,f0,R);
-				#pragma omp critical
-				{
-				if(M.tab[f0.Posicao.first][f0.Posicao.second] == 1){ //encontrou sugeira
-          if(!f0.Carga && Pegar(visao)){ // pode pegar
-            //printf("%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
-            f0.Carga = true; //pegou
-              M.tab[f0.Posicao.first][f0.Posicao.second] = 0; // liberou lugar
-
+			srand((int) time(0));
+			f0 = Move_Formiga(f0,N);
+			//printf("f%d %s : <%d,%d>\n",tid, f0.Carga ? "True":"False", f0.Posicao.first, f0.Posicao.second);
+			//criar matriz visao
+			visao = Cria_MatrizVisao(M,f0,R);
+			if(M.tab[f0.Posicao.first][f0.Posicao.second] == 1){ //encontrou sugeira
+        if(!f0.Carga && Pegar(visao)){ // pode pegar
+          //printf("%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
+          f0.Carga = true; //pegou
+    			#pragma omp critical
+          {
+            M.tab[f0.Posicao.first][f0.Posicao.second] = 0; // liberou lugar
+            sprintf(filename, "matriz.txt");
+            fmat = fopen(filename,"a");
+            fprintf(fmat,"%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
+            fclose(fmat);
           }
-				}else{ // ta limpo
-					if(Soltar(visao) && f0.Carga){ // pode soltar
-						//printf("%d largou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
-						f0.Carga = false;
-            M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
-					}
         }
-			}
-        //libera matriz visao;
-        LiberarMatrizVisao(visao);
+		  }else{ // ta limpo
+			  if(Soltar(visao) && f0.Carga){ // pode soltar
+					//printf("%d largou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
+					f0.Carga = false;
+    			#pragma omp critical
+          {
+            M.tab[f0.Posicao.first][f0.Posicao.second] = 1; // liberou carga
+            sprintf(filename, "matriz.txt");
+            fmat = fopen(filename,"a");
+            fprintf(fmat,"%d soltou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
+            fclose(fmat);
+          }
+				}
       }
-
-			if(tid == 0 && p%(P/5) == 0){
-
-				sprintf(filename, "matriztime%d.txt",p);
-				fmat = fopen(filename,"w");
-				fileout_matriz(M, fmat);
-				fclose(fmat);
-
-			}
+      //libera matriz visao;
+      LiberarMatrizVisao(visao);
       //Completou todos p mas ainda tem Carga
       if(p == P-1 && f0.Carga)
-      	p--;
+        p--;
+		}
 
-	  }
     printf("f%d %s\n", tid, f0.Carga ? "True":"False");
 	}
   #pragma omp barrier
@@ -646,10 +650,12 @@ int main(int argc, char **argv){
 	Print_Matriz(M.tab, M.N);
 	}
 
-	sprintf(filename, "matriz_fim.txt" );
-	fmat = fopen(filename,"w");
+	sprintf(filename, "matriz.txt" );
+	fmat = fopen(filename,"a");
+	fprintf(fmat,"Matriz Final\n\n");
 	fileout_matriz(M, fmat);
 	fclose(fmat);
+  Destroi_Matriz(M);
 	/*
   printf("\nf0: <%d,%d>\nf0: <%d,%d>\n", f0.Posicao.first, f0.Posicao.second, f0.PosicaoAnt.first, f0.PosicaoAnt.second);
   */
