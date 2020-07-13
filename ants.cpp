@@ -63,8 +63,7 @@
 */
 
 std::default_random_engine dre (std::chrono::steady_clock::now().time_since_epoch().count());     // provide seed
-int random (int lim)
-{
+int random (int lim){
     std::uniform_int_distribution<int> uid{0,lim};   // help dre to generate nos from 0 to lim (lim included);
     return uid(dre);    // pass dre as an argument to uid to generate the random no
 }
@@ -80,6 +79,8 @@ struct Formiga{
   std::list <std::pair <int,int> > PosicaoAnt; // <x,y> - lista das posições anteriores da formiga
 };
 
+
+
 Matriz Cria_Matriz(int n){ // Cria matriz n x n
   Matriz m;
   m.N = n;
@@ -94,8 +95,6 @@ void Destroi_Matriz(Matriz m){
     free(m.tab[i]);
   free(m.tab);
 }
-
-
 
 void Print_Matriz(int **visited, int N){
 		//if(system("CLS")) system("clear");
@@ -473,8 +472,6 @@ bool Pegar(Matriz visao){
 	int probilidade =(int) 100 * pow( (aux - cont)/ aux, 2 );
 	int r = random(100);
 	return (probilidade >= r);
-
-
 }
 
 bool Soltar(Matriz visao){
