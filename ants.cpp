@@ -186,7 +186,7 @@ bool ProcuraParNoVetor(std::list <std::pair <int,int>> v, std::pair <int,int> pa
 	return false;
 }
 
-Formiga Move_Formiga(Formiga F, int N ,int tamanho_matriz){ // Move o agente F
+Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
   Formiga Aux;
   bool a = true;
   bool cond;
@@ -229,17 +229,17 @@ Formiga Move_Formiga(Formiga F, int N ,int tamanho_matriz){ // Move o agente F
                 break;
               }
 
-              if(Aux.Posicao.first >= tamanho_matriz){ // caso maior q maixmo em X
-        				Aux.Posicao.first = Aux.Posicao.first - tamanho_matriz; // entao volta para 0
+              if(Aux.Posicao.first >= N){ // caso maior q maixmo em X
+        				Aux.Posicao.first = Aux.Posicao.first - N; // entao volta para 0
         			}
         			if(Aux.Posicao.first < 0){ //caso menor 0 ou seja -1 -> vai para max-1
-        				Aux.Posicao.first = tamanho_matriz + Aux.Posicao.first;
+        				Aux.Posicao.first = N + Aux.Posicao.first;
         			}
-        			if(Aux.Posicao.second >= tamanho_matriz){
-        				Aux.Posicao.second = Aux.Posicao.second - tamanho_matriz;
+        			if(Aux.Posicao.second >= N){
+        				Aux.Posicao.second = Aux.Posicao.second - N;
         			}
         			if(Aux.Posicao.second < 0){
-        				Aux.Posicao.second = tamanho_matriz + Aux.Posicao.second;
+        				Aux.Posicao.second = N + Aux.Posicao.second;
         			}
 
 
@@ -269,9 +269,10 @@ bool Pegar(Matriz visao){
     }
   }
 	int aux = visao.N -1;
-	int probilidade =(int) 100 * cont/aux;
+  int func = cont/aux;
+  int probilidade = (int) 100 * func;
 	int r = random(100);
-	return (probilidade >= r);
+	return (probilidade <= r);
 }
 
 bool Soltar(Matriz visao){
@@ -284,9 +285,10 @@ bool Soltar(Matriz visao){
     }
   }
 	int aux = visao.N -1;
-	int probilidade =(int) 100 * cont/aux;
+  int func = cont/aux;
+  int probilidade =(int) 100*func ;
 	int r= random(100);
-	return (probilidade < r);
+	return (probilidade > r);
 }
 
 void Encher_Matriz(Matriz m,int p){
