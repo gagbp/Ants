@@ -263,7 +263,7 @@ bool Pegar(Matriz visao){
   int cont = 0;
   for (int i = 0; i < visao.N; i++) {
     for (int j = 0; j < visao.N; j++) {
-      if (visao.tab[i][j]==1 && i != (visao.N/2) +1  && j != (visao.N/2) +1) {
+      if (visao.tab[i][j]==1 && i != (visao.N/2)  && j != (visao.N/2)) {
         cont++;
       }
     }
@@ -279,7 +279,7 @@ bool Soltar(Matriz visao){
   int cont = 0;
   for (int i = 0; i < visao.N; i++) {
     for (int j = 0; j < visao.N; j++) {
-      if (visao.tab[i][j]==1 && i != (visao.N/2) +1  && j != (visao.N/2) +1  ) { // nao vai contar o centro
+      if (visao.tab[i][j]==1 && i != (visao.N/2)  && j != (visao.N/2) ) { // nao vai contar o centro
         cont++;
       }
     }
