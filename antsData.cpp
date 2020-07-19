@@ -238,7 +238,7 @@ double distEuclidiana(Dado a, Dado b){
   return sqrt(c1+c2);
 }
 
-bool Pegar(Matriz visao,double alpha){
+bool Pegar(Matriz visao){
 
 if(visao.tab[(visao.N/2)][(visao.N/2)].Rotulo == 0){
   return false;
@@ -248,22 +248,36 @@ if(visao.tab[(visao.N/2)][(visao.N/2)].Rotulo == 0){
   double somatorio_de_1menosdistporalpha = 0.0;  //E (1-d(i,j)/a)
   double fij;
   // parametros constantes definidos impiricamento
-  double k = 0.1; //[ 0 a 1 ]
+  double k = 0.7; //[ 0 a 1 ]
   // parametros
+  double alpha = 0.0;
+  // paremtro alpha
+  for (int i = 0; i < visao.N; i++) {
+    for (int j = 0; j < visao.N; j++) {
+      if (visao.tab[i][j].Rotulo!=0 ) { //(visao.N/2) +1  eh o lugar onde a formiga esta
+        double d =  distEuclidiana(visao.tab[i][j],visao.tab[(visao.N/2)][(visao.N/2)]);
+        alpha = alpha + d;
+        qtd_dados_vizinhos++;
+      }
+    }
+  }
+  alpha = alpha/qtd_dados_vizinhos;
+
 
   for (int i = 0; i < visao.N; i++) {
     for (int j = 0; j < visao.N; j++) {
-      if (visao.tab[i][j].Rotulo!=0 && i != (visao.N/2) && j != (visao.N/2)) { //(visao.N/2) +1  eh o lugar onde a formiga esta
+      if (visao.tab[i][j].Rotulo!=0) { //(visao.N/2) +1  eh o lugar onde a formiga esta
         double d =  distEuclidiana(visao.tab[i][j],visao.tab[(visao.N/2)][(visao.N/2)]);
-        somatorio_de_1menosdistporalpha = somatorio_de_1menosdistporalpha + (1 - (d/ (alpha*alpha)));
-        qtd_dados_vizinhos++;
+        if(alpha == 0){ alpha = 1 ;} // pra nao dividir por  0
+        somatorio_de_1menosdistporalpha = somatorio_de_1menosdistporalpha + (1 - (d/ (alpha*1.2)));
+        //qtd_dados_vizinhos++;
       }
     }
   }
   //int aux = visao.N -1;
   //int func = cont/aux;
   //printf("somatorio : %lf\n", somatorio_de_1menosdistporalpha );
-  fij = somatorio_de_1menosdistporalpha/pow(qtd_dados_vizinhos +1 ,2);
+  fij = somatorio_de_1menosdistporalpha/pow(qtd_dados_vizinhos  ,2);
   //printf("%lf\n", fij);
   double func = pow(k/(k + fij),2);
   long int probilidade = (long int) 100 * func; // probilidad de pegar
@@ -274,7 +288,7 @@ if(visao.tab[(visao.N/2)][(visao.N/2)].Rotulo == 0){
 	return (probilidade >= r);
 }
 
-bool Soltar(Matriz visao,double alpha){
+bool Soltar(Matriz visao){
   if(visao.tab[(visao.N/2)][(visao.N/2)].Rotulo != 0){
     return false;
   }
@@ -284,17 +298,31 @@ bool Soltar(Matriz visao,double alpha){
   double fij;
 
   // parametros constantes definidos impiricamento
-  double k = 0.3; //[ 0 a 1 ]
+  double k = 0.5; //[ 0 a 1 ]
   // parametros
+
+  double alpha = 0.0;
+  // paremtro alpha
+  for (int i = 0; i < visao.N; i++) {
+    for (int j = 0; j < visao.N; j++) {
+      if (visao.tab[i][j].Rotulo!=0 ) { //(visao.N/2) +1  eh o lugar onde a formiga esta
+        double d =  distEuclidiana(visao.tab[i][j],visao.tab[(visao.N/2)][(visao.N/2)]);
+        alpha = alpha + d;
+        qtd_dados_vizinhos++;
+      }
+    }
+  }
+  alpha = alpha/qtd_dados_vizinhos;
+
 
   for (int i = 0; i < visao.N; i++) {
     for (int j = 0; j < visao.N; j++) {
-      if (visao.tab[i][j].Rotulo != 0 && i != (visao.N/2)   && j != (visao.N/2) ) { // nao vai contar o centro
+      if (visao.tab[i][j].Rotulo != 0)  { // nao vai contar o centro
         double d =  distEuclidiana(visao.tab[i][j],visao.tab[(visao.N/2)][(visao.N/2)]);
         double aux_e =(d);
+        if(alpha == 0){ alpha = 1 ;} // pra nao dividir por zero
         //printf("aux : %lf\n",aux_e );
-        somatorio_de_1menosdistporalpha = somatorio_de_1menosdistporalpha + (1 - (d/(alpha*alpha)));
-        qtd_dados_vizinhos++;
+        somatorio_de_1menosdistporalpha = somatorio_de_1menosdistporalpha + (1 - (d/(alpha *1.2  )));
       }
     }
   }
@@ -302,7 +330,7 @@ bool Soltar(Matriz visao,double alpha){
   //int func = cont/aux;
 
   //printf("somatorio : %lf\n", somatorio_de_1menosdistporalpha );
-  fij = somatorio_de_1menosdistporalpha/pow(qtd_dados_vizinhos+1,2);
+  fij = somatorio_de_1menosdistporalpha/pow(qtd_dados_vizinhos,2);
   //printf("%lf\n",fij );
   double func = pow(fij/(k + fij),2);
   long int probilidade = (long int) 100 * func; // probilidad de largar
@@ -360,7 +388,7 @@ void Encher_Matriz(Matriz m,std::string D){
 		}
 	}
 }
-
+/*
 double Get_parametroAlpha(std::string nome_file){
   std::string qtd;
   double X,Y;
@@ -386,7 +414,7 @@ double Get_parametroAlpha(std::string nome_file){
   free(vetor_dados);
   return soma_distancia/(stoi(qtd)*stoi(qtd));
 }
-
+*/
 int fileout_matriz (Matriz m, FILE *infile){
 
 	fprintf(infile,"   |");
@@ -438,9 +466,7 @@ int main(int argc, char **argv){
 	//printf("%d\n",O );
 
   Encher_Matriz(M,D);
-  double alpha =  Get_parametroAlpha(D);
-  printf("%f\n",alpha);
-
+  
   if(M.N <= 30){
 	  Print_Matriz(M.tab, M.N);
 	}
@@ -475,7 +501,7 @@ int main(int argc, char **argv){
       #pragma omp critical
       {
       if(M.tab[f0.Posicao.first][f0.Posicao.second].Rotulo != 0){ //encontrou sugeira
-        if(f0.Carga.Rotulo == 0 && Pegar(visao,alpha)){ // pode pegar
+        if(f0.Carga.Rotulo == 0 && Pegar(visao)){ // pode pegar
           //printf("%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
           f0.Carga = M.tab[f0.Posicao.first][f0.Posicao.second]; //pegou
 
@@ -490,7 +516,7 @@ int main(int argc, char **argv){
 
         }
 		  }else{ // ta limpo
-			  if(Soltar(visao,alpha) && f0.Carga.Rotulo != 0){ // pode soltar
+			  if(Soltar(visao) && f0.Carga.Rotulo != 0){ // pode soltar
 					 // printf("%d largou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
             //printf("SOLTOU UM %d \n",f0.Carga.Rotulo );
             M.tab[f0.Posicao.first][f0.Posicao.second].Rotulo = f0.Carga.Rotulo; // liberou carga

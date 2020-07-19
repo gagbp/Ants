@@ -195,7 +195,8 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
   {
     int d = random(7);
     Aux = Cria_Formiga(F.Posicao.first, F.Posicao.second,F.PosicaoAnt);
-	  d = random(7);
+    d = rand() % 8;
+    //d = random(7);
           switch (d) {
               case 0:
                 Aux.Posicao.first--;
@@ -269,6 +270,7 @@ bool Pegar(Matriz visao){
     }
   }
 	int aux = visao.N -1;
+
   int func = cont/aux;
   int probilidade = (int) 100 * func; // probilidade de soltar
 	int r = random(100);
