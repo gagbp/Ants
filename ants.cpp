@@ -251,7 +251,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
       count++;
   }
   Aux.Carga = F.Carga;
-  if(Aux.PosicaoAnt.size() >= 20){
+  if(Aux.PosicaoAnt.size() >= 4){
 		Aux.PosicaoAnt.pop_front();
 	}
   Aux.PosicaoAnt.push_back(F.Posicao);

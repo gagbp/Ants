@@ -237,14 +237,13 @@ float distEuclidiana(Dado a, Dado b){
   return sqrt(c1+c2);
 }
 
-bool Pegar(Matriz visao){
+bool Pegar(Matriz visao,float alpha){
   int qtd_dados_vizinhos = 0;
-  float somatorio_de_1menosdistporalpha = 0.0;  //E (1-d(i,j)/a)
-  float fij;
+  double somatorio_de_1menosdistporalpha = 0.0;  //E (1-d(i,j)/a)
+  double fij;
 
   // parametros constantes definidos impiricamento
-  float alpha = 3.16;
-  float k = 0.5; //[ 0 a 1 ]
+  float k = 0.56; //[ 0 a 1 ]
   // parametros
 
   for (int i = 0; i < visao.N; i++) {
@@ -260,21 +259,21 @@ bool Pegar(Matriz visao){
   //int func = cont/aux;
 
   fij = somatorio_de_1menosdistporalpha/pow(qtd_dados_vizinhos,2);
-  float func = pow(k/(k + fij),2);
-  int probilidade = (int) 100 * func; // probilidad de pegar
-	int r = random(100);
+  double func = pow(k/(k + fij),2);
+  long int probilidade = (long int) 100 * func; // probilidad de pegar
+    //printf("PROB DE PEGAR %d\n" ,probilidade );
+  int r = random(100);
 	return (probilidade >= r);
 }
 
-bool Soltar(Matriz visao){
+bool Soltar(Matriz visao,float alpha){
 
   int qtd_dados_vizinhos = 0;
-  float somatorio_de_1menosdistporalpha = 0.0;  //E (1-d(i,j)/a)
-  float fij;
+  double somatorio_de_1menosdistporalpha = 0.0;  //E (1-d(i,j)/a)
+  double fij;
 
   // parametros constantes definidos impiricamento
-  float alpha = 3.16;
-  float k = 0.5; //[ 0 a 1 ]
+  float k = 0.23; //[ 0 a 1 ]
   // parametros
 
   for (int i = 0; i < visao.N; i++) {
@@ -290,10 +289,11 @@ bool Soltar(Matriz visao){
   //int func = cont/aux;
 
   fij = somatorio_de_1menosdistporalpha/pow(qtd_dados_vizinhos,2);
-  float func = pow(fij/(k + fij),2);
-  int probilidade = (int) 100 * func; // probilidad de largar
-	int r = random(100);
-	return (probilidade >= r);
+  double func = pow(fij/(k + fij),2);
+  long int probilidade = (long int) 100 * func; // probilidad de largar
+  printf("PROB DE SOLTAR %d\n",probilidade );
+  int r = random(100);
+  return (probilidade >= r);
 }
 
 void Encher_Matriz(Matriz m,std::string D){
@@ -316,7 +316,7 @@ void Encher_Matriz(Matriz m,std::string D){
     for (int j = 0; j < m.N; j++){
 			if(cont_aux <= stoi(qtd) ){
         data >> X >> Y >> Rotulo;
-        std::cout << X <<"  " << Y << "   " << Rotulo <<'\n';
+
         m.tab[i][j].X = X;
         m.tab[i][j].Y = Y;
         m.tab[i][j].Rotulo = Rotulo;
@@ -342,6 +342,31 @@ void Encher_Matriz(Matriz m,std::string D){
 	}
 }
 
+float Get_parametroAlpha(std::string nome_file){
+  std::string qtd;
+  float X,Y;
+  int Rotulo;
+  std::ifstream data(nome_file);
+  data >> qtd;
+  printf("quantidade %d\n", stoi(qtd));
+  Dado *vetor_dados =(Dado*) malloc(sizeof(Dado) * stoi(qtd));
+
+  int cont_aux = 0;
+	for (int i = 0; i < stoi(qtd); i++){// Preenche a matriz com 0 e 1 randomicamente
+    data >> X >> Y >> Rotulo;
+    vetor_dados[i].X = X;
+    vetor_dados[i].Y = Y;
+    vetor_dados[i].Rotulo = Rotulo;
+  }
+  float soma_distancia = 0;
+  for (int i = 0; i < stoi(qtd); i++){
+    for (int j = 0; j < stoi(qtd); j++){
+      soma_distancia = soma_distancia + distEuclidiana(vetor_dados[j],vetor_dados[i]);
+    }
+  }
+  free(vetor_dados);
+  return soma_distancia/(stoi(qtd)*stoi(qtd));
+}
 
 int fileout_matriz (Matriz m, FILE *infile){
 
@@ -382,7 +407,6 @@ int main(int argc, char **argv){
   int R = 2*atoi(argv[4]) + 1;
   int F = atoi(argv[5]);
 
-
   int nthreads,tid;
 	int randaux;
 
@@ -393,8 +417,10 @@ int main(int argc, char **argv){
   Matriz M = Cria_Matriz(N);// Cria o ambiente
   int count = 0;
 	//printf("%d\n",O );
-  Encher_Matriz(M,D);
 
+  Encher_Matriz(M,D);
+  float alpha =  Get_parametroAlpha(D);
+  printf("%f\n",alpha);
 
   if(M.N <= 30){
 	  Print_Matriz(M.tab, M.N);
@@ -430,7 +456,7 @@ int main(int argc, char **argv){
       #pragma omp critical
       {
       if(M.tab[f0.Posicao.first][f0.Posicao.second].Rotulo != 0){ //encontrou sugeira
-        if(f0.Carga.Rotulo == 0 && Pegar(visao)){ // pode pegar
+        if(f0.Carga.Rotulo == 0 && Pegar(visao,alpha)){ // pode pegar
           //printf("%d pegou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
           f0.Carga = M.tab[f0.Posicao.first][f0.Posicao.second]; //pegou
 
@@ -445,7 +471,7 @@ int main(int argc, char **argv){
 
         }
 		  }else{ // ta limpo
-			  if(Soltar(visao) && f0.Carga.Rotulo != 0){ // pode soltar
+			  if(Soltar(visao,alpha) && f0.Carga.Rotulo != 0){ // pode soltar
 					//printf("%d largou <%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
             M.tab[f0.Posicao.first][f0.Posicao.second].Rotulo = f0.Carga.Rotulo; // liberou carga
             M.tab[f0.Posicao.first][f0.Posicao.second].X = f0.Carga.X; // liberou lugar
@@ -470,7 +496,6 @@ int main(int argc, char **argv){
 		}
 
     printf("f%d OK\n", tid);
-    Print_Matriz(M.tab, M.N);
   }
   #pragma omp barrier
 
