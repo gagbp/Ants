@@ -290,7 +290,7 @@ if(visao.tab[(visao.N/2)][(visao.N/2)].Rotulo == 0 || carregado.Rotulo != 0 ){
     for (int j = 0; j < visao.N; j++) {
       if (visao.tab[i][j].Rotulo!=0 && !(i == visao.N/2 && j == visao.N/2)) { //(visao.N/2) +1  eh o lugar onde a formiga esta
         double d =  distEuclidiana(visao.tab[(visao.N/2)][(visao.N/2)],visao.tab[i][j]);
-        double d_aux = 1 - (d/alpha);
+        double d_aux = 1 - (d/(alpha*0.8));
         //printf("%lf - ",d_aux );
         somatorio_de_1menosdistporalpha = somatorio_de_1menosdistporalpha + d_aux;
         qtd_dados_vizinhos++;
@@ -364,7 +364,7 @@ bool Soltar(Matriz visao,double alpha,Dado carregado){
     for (int j = 0; j < visao.N; j++) {
       if (visao.tab[i][j].Rotulo != 0 && !(i == visao.N/2 && j == visao.N/2))  { // nao vai contar o centro
         double d =  distEuclidiana(carregado,visao.tab[i][j]);
-        double d_aux = 1 - (d/(alpha));
+        double d_aux = 1 - (d/(alpha*0.8));
         somatorio_de_1menosdistporalpha = somatorio_de_1menosdistporalpha + d_aux;
         //printf("%lf - ",d_aux );
         qtd_dados_vizinhos++;

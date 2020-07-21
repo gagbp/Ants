@@ -195,40 +195,39 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
   {
     int d = random(7);
     Aux = Cria_Formiga(F.Posicao.first, F.Posicao.second,F.PosicaoAnt);
-    d = rand() % 8;
     //d = random(7);
           switch (d) {
-              case 0:
-                Aux.Posicao.first--;
-                Aux.Posicao.second--;
-                break;
-              case 1:
-                Aux.Posicao.second--;
-                break;
-              case 2:
-                Aux.Posicao.first++;
-                Aux.Posicao.second--;
-                break;
-              case 3:
-                Aux.Posicao.second--;
-                break;
-              case 4:
-                Aux.Posicao.second++;
-                break;
-              case 5:
-                Aux.Posicao.first++;
-                Aux.Posicao.second--;
-                break;
-              case 6:
-                Aux.Posicao.first++;
-                break;
-              case 7:
-                Aux.Posicao.first++;
-                Aux.Posicao.second++;
-                break;
-              default:
-                break;
-              }
+            case 0:
+              Aux.Posicao.first--;
+              Aux.Posicao.second--;
+              break;
+            case 1:
+              Aux.Posicao.second--;
+              break;
+            case 2:
+              Aux.Posicao.first++;
+              Aux.Posicao.second--;
+              break;
+            case 3:
+              Aux.Posicao.first--;
+              break;
+            case 4:
+              Aux.Posicao.first++;
+              break;
+            case 5:
+              Aux.Posicao.first--;
+              Aux.Posicao.second++;
+              break;
+            case 6:
+              Aux.Posicao.second++;
+              break;
+            case 7:
+              Aux.Posicao.first++;
+              Aux.Posicao.second++;
+              break;
+            default:
+              break;
+            }
 
               if(Aux.Posicao.first >= N){ // caso maior q maixmo em X
         				Aux.Posicao.first = Aux.Posicao.first - N; // entao volta para 0
@@ -243,8 +242,6 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
         				Aux.Posicao.second = N + Aux.Posicao.second;
         			}
 
-
-
     cond = ProcuraParNoVetor(Aux.PosicaoAnt,Aux.Posicao);
     if(!cond || count >= 3)
       a = false;
@@ -252,7 +249,7 @@ Formiga Move_Formiga(Formiga F, int N){ // Move o agente F
       count++;
   }
   Aux.Carga = F.Carga;
-  if(Aux.PosicaoAnt.size() >= 4){
+  if(Aux.PosicaoAnt.size() >= 3){
 		Aux.PosicaoAnt.pop_front();
 	}
   Aux.PosicaoAnt.push_back(F.Posicao);
@@ -264,7 +261,7 @@ bool Pegar(Matriz visao){
   int cont = 0;
   for (int i = 0; i < visao.N; i++) {
     for (int j = 0; j < visao.N; j++) {
-      if (visao.tab[i][j]==1 && i != (visao.N/2)  && j != (visao.N/2)) {
+      if (visao.tab[i][j]==1 && !(i == (visao.N/2)  && j == (visao.N/2))) {
         cont++;
       }
     }
@@ -281,7 +278,7 @@ bool Soltar(Matriz visao){
   int cont = 0;
   for (int i = 0; i < visao.N; i++) {
     for (int j = 0; j < visao.N; j++) {
-      if (visao.tab[i][j]==1 && i != (visao.N/2)  && j != (visao.N/2) ) { // nao vai contar o centro
+      if (visao.tab[i][j]==1 && !(i == (visao.N/2)  && j == (visao.N/2)) ) { // nao vai contar o centro
         cont++;
       }
     }
@@ -370,7 +367,7 @@ int main(int argc, char **argv){
 	char filename[100];
 	FILE *fmat;
 
-	srand( time(0));
+	//srand( time(0));
   Matriz M = Cria_Matriz(N);// Cria o ambiente
   int count = 0;
 
@@ -403,7 +400,7 @@ int main(int argc, char **argv){
     //printf("thread %d: f0<%d,%d>\n", tid, f0.Posicao.first, f0.Posicao.second);
     for(int p = 0;p < P; p++) // cada Formiga da P passos ate morrer
     {
-			srand((int) time(0));
+			//srand((int) time(0));
 			f0 = Move_Formiga(f0,N);
 			//printf("f%d %s : <%d,%d>\n",tid, f0.Carga ? "True":"False", f0.Posicao.first, f0.Posicao.second);
 			//criar matriz visao
