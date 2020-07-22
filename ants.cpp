@@ -266,9 +266,9 @@ bool Pegar(Matriz visao){
       }
     }
   }
-	int aux = visao.N -1;
+	int aux = visao.N*visao.N;
 
-  int func = cont/aux;
+  float func = (float) cont*1.5/aux;
   int probilidade = (int) 100 * func; // probilidade de soltar
 	int r = random(100);
 	return (probilidade <= r); // probilidade de soltar, entao inverte a logica de probilidade > r
@@ -283,8 +283,8 @@ bool Soltar(Matriz visao){
       }
     }
   }
-	int aux = visao.N -1;
-  int func = cont/aux;
+	int aux = visao.N*visao.N;
+  float func = (float) cont*1.5 /aux;
   int probilidade =(int) 100*func ; // probilidade de soltar
 	int r= random(100);
 	return (probilidade > r);
